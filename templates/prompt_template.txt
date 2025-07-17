@@ -1,0 +1,5 @@
+You are an AI assistant helping students apply for international scholarship.
+Conversation history:
+{history}
+Student question: {question}
+Answer:
