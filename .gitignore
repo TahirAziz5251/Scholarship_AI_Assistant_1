@@ -1,0 +1,15 @@
+# Virtual environment
+venv/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS / Editor
+*.swp
+.DS_Store
+
+# Secrets
+.env

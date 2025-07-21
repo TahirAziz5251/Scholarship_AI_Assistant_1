@@ -41,7 +41,7 @@ class QADataset(Dataset):
         }
 
 # Load tokenizer & model
-model_name = "tiiuae/Falcon-H1-3B-Instruct" 
+model_name = "sentence-transformers/all-MiniLM-L6-v2" 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
@@ -90,4 +90,6 @@ trainer.train()
 #  Save the fine-tuned model
 model.save_pretrained("../models/fine_tuned_model")
 tokenizer.save_pretrained("../models/fine_tuned_model")
+
+print("Fine-tuning completed and model saved to '../models/fine_tuned_model'.")
 

@@ -1,7 +1,10 @@
 import streamlit as st
 from backend.langchain_chain import create_langchain
 from backend.vector_db import create_vector_store
-from utils.auth import check_login, register_user, get_user_db, hash_password
+from utils.auth import check_login, register_user, get_user, change_password, init_db
+
+# Initialize database 
+init_db()
 
 # Streamlit page configuration
 st.set_page_config(page_title="Scholarship AI Assistant", page_icon=":robot_face:")
@@ -16,22 +19,19 @@ if "chain" not in st.session_state:
     st.session_state.chain = None
 if "vector_store" not in st.session_state:
     st.session_state.vector_store = None
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-# Example user database (replace with real persistent storage)
-user_db = {
-    "student1": "5e884898da28047151d0e56f8dc6292773603d0d6aabbddc…"  # SHA256 hash of "password"
-}
-
-# Login / Register form
+# Login/Register form
 with st.form("auth_form"):
     username = st.text_input("Username", placeholder="Enter your username")
     password = st.text_input("Password", type="password", placeholder="Enter your password")
-    action = st.radio("Choose Action", ("Login", "Register", "Change Password", "Reset Password", "Get User"))
+    action = st.radio("Choose Action", ("Login", "Register", "Change Password", "Get User"))
     submitted = st.form_submit_button("Submit")
 
 if submitted:
     if action == "Login":
-        if check_login(username, password, user_db):
+        if check_login(username, password):
             st.success(f" Welcome, {username}!")
             st.session_state.logged_in = True
             st.session_state.username = username
@@ -46,22 +46,22 @@ if submitted:
             st.error(" Invalid username or password.")
 
     elif action == "Register":
-        if register_user(username, password, user_db):
+        if register_user(username, password):
             st.success(" Registration successful!")
         else:
-            st.error("⚠️ Username already exists.")
+            st.error(" Username already exists.")
 
     elif action == "Change Password":
-        if username in user_db:
-            user_db[username] = hash_password(password)
-            st.success("🔑 Password changed successfully!")
+        # Use password field as new password
+        if change_password(username, password):
+            st.success("Password changed successfully!")
         else:
             st.error(" User not found.")
 
     elif action == "Get User":
-        user = get_user_db(username, user_db)
+        user = get_user(username)
         if user:
-            st.success(f" User found: {username}")
+            st.success(f" User found: {user}")
         else:
             st.error(" User not found.")
 
@@ -83,7 +83,7 @@ if st.session_state.logged_in:
 
         # Create / update vector store
         st.session_state.vector_store = create_vector_store(documents)
-        st.success(f"✅ Uploaded {len(documents)} documents and updated vector store.")
+        st.success(f" Uploaded {len(documents)} documents and updated vector store.")
 
     st.divider()
 
@@ -95,10 +95,19 @@ if st.session_state.logged_in:
             if st.session_state.chain:
                 response = st.session_state.chain.run(question=user_question)
                 st.info(f"**Assistant:** {response}")
+
+                #  I will add the chat history to the session state
+                st.session_state.chat_history.append("You", user_question)
+                st.session_state.chat_history.append("Assistant", response)
             else:
                 st.error(" AI chain not initialized.")
         else:
-            st.warning("⚠️ Please enter a question to ask.")
+            st.warning(" Please enter a question to ask.")
+    #Display chat history
+    if st.session_state.chat_history:
+        st.subheader("Chat History")
+        for sender, message in st.session_state.chat_history:
+            st.markdown(f"**{sender}:** {message}") 
 
 else:
     st.warning("🔒 Please log in to access the AI assistant features.")
