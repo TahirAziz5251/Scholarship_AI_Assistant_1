@@ -16,3 +16,6 @@ __pycache__/
 
 # VSCode (optional)
 .vscode/
+
+# GitHub workflows and configs
+.github/
